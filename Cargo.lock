@@ -1697,6 +1697,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-trait",
+ "csv",
  "prometheus",
  "sui-data-ingestion-core",
  "sui-types",
