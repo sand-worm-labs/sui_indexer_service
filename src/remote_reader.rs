@@ -106,11 +106,11 @@ impl Worker for EventWriter {
         checkpoint.transactions.iter().for_each(|tx| {
             let tx_d = tx.transaction.digest().base58_encode();
             tx.events.iter().for_each(|event| {
-                println!("Checkpoint Number: {}", checkpoint_number);
-                println!("Timestamp (ms): {}", timestamp);
-                println!("Checkpoint Digest: {:?}", checkpoint_digest);
-                println!("Transation Digest: {:?} ", tx_d);
                 event.data.iter().for_each(|d| {
+                    println!("Checkpoint Number: {}", checkpoint_number);
+                    println!("Timestamp (ms): {}", timestamp);
+                    println!("Checkpoint Digest: {:?}", checkpoint_digest);
+                    println!("Transation Digest: {:?} ", tx_d);
                     println!("package_id: {:?} ", d.package_id);
                     println!("transaction_module: {:?} ", d.transaction_module.as_str());
                     println!("sender: {:?} ", d.sender);
