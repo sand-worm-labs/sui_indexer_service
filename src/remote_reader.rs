@@ -110,7 +110,15 @@ impl Worker for EventWriter {
                 println!("Timestamp (ms): {}", timestamp);
                 println!("Checkpoint Digest: {:?}", checkpoint_digest);
                 println!("Transation Digest: {:?} ", tx_d);
-                println!("Event: {:?} ", event);
+                event.data.iter().for_each(|d| {
+                    println!("package_id: {:?} ", d.package_id);
+                    println!("transaction_module: {:?} ", d.transaction_module.as_str());
+                    println!("sender: {:?} ", d.sender);
+                    println!("type_address: {:?} ", d.type_.address);
+                    println!("module: {:?} ", d.type_.module.as_str());
+                    println!("name: {:?} \n \n", d.type_.name.as_str());
+                });
+                //println!("Event: {:?} ", event);
                 // // Print sender address
             })
 
