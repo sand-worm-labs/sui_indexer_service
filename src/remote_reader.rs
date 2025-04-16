@@ -2,9 +2,9 @@ mod write_to_csv;
 
 use anyhow::{Ok, Result};
 use async_trait::async_trait;
+use sui_types::effects::TransactionEffectsAPI;
 use std::sync::OnceLock;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::time;
 use sui_data_ingestion_core::{Worker, setup_single_workflow};
 use sui_types::crypto::EncodeDecodeBase64;
 use sui_types::full_checkpoint_content::CheckpointData;
@@ -43,24 +43,26 @@ impl Worker for TransactionWriter {
         let checkpoint_digest = checkpoint.checkpoint_summary.digest().base58_encode();
 
         checkpoint.transactions.iter().for_each(|tx| {
+            let costs = tx.effects.gas_cost_summary();
             println!("Checkpoint Number: {}", checkpoint_number);
             println!("Timestamp (ms): {}", timestamp);
             println!("Checkpoint Digest: {:?}", checkpoint_digest);
+            println!("Transation Digest: {:?} ", tx.transaction.digest().base58_encode());
+            println!("Gas coputation : {:?} ", costs.computation_cost);
+            println!("Gas storage : {:?} ", costs.storage_cost);
+            println!("Gas rebate : {:?} ", costs.storage_rebate);
+            println!("not refundable : {:?} ", costs.non_refundable_storage_fee);
+            println!("Gas: {:?} ", costs.gas_used());
+            println!("Status: {:?} ", tx.effects.status());
+            //println!(" Gs Payments {:?} \n \n",tx.effects);
+            // println!(" object Changes: {:?} \n \n",tx.effects.object_changes());
+            // println!("balance Changes {:?} \n \n",tx);
             // // Print sender address
-            println!("Sender: {:?} ", tx.transaction.sender_address());
-            print!("Ammount  {:?} \n \n ", tx.transaction.data());
+            //println!("Sender: {:?} ", tx.transaction.sender_address());
+          //  print!("Ammount  {:?} \n \n ", tx.transaction);
 
             // Print gas object
-            println!("Gas: {:?} ", tx.transaction.gas());
-
-            // Print full transaction data
-            //println!("Gas price: {:?} \n", tx.transaction.data());
-
-            // Print gas owner address
-            println!("Gas owner: {:?} ", tx.transaction.gas_owner());
-
-            // Print full transaction for inspection (likely way too verbose for real use)
-            //println!("Full Transaction: {:?} \n", tx.transaction);
+             println!("Gas: {:?} ", tx.effects.gas_cost_summary());
 
             // Encode and print all signatures in base64
             let encoded_signatures: Vec<String> = tx.transaction.tx_signatures()
@@ -126,30 +128,13 @@ impl Worker for EventWriter {
             // let sender_address = tx.transaction.sender_address().to_string();
         });
             
-        // println!(
-        //     "Checkpoint: {} \n Timestamp: {} \n Addresses: {:?}  {:?}\n \n",
-        //     checkpoint_number, timestamp, addresses, checkpoint_digest
-        // );
-        // checkpoint.transactions.iter().for_each(|tx| {
-        //     println!("Transaction: {:?} \n \n ", tx);
-        // });
-        // let data = checkpoint.checkpoint_summary.data();
-        // let first_write = FIRST_WRITE.get_or_init(|| AtomicBool::new(true));
-        // let is_first = first_write.swap(false, Ordering::SeqCst);
-        // write_checkpoint_to_csv(
-        //     data,
-        //     checkpoint.transactions.len(),
-        //     "checkpoint.csv",
-        //     is_first,
-        // )
-        // .unwrap();
         Ok(())
     }
 }
 #[tokio::main]
 async fn main() -> Result<()> {
     let (executor, term_sender) = setup_single_workflow(
-        EventWriter,
+        TransactionWriter,
         "https://checkpoints.mainnet.sui.io".to_string(),
         134001767, /* initial checkpoint number */
         5,         /* concurrency */
